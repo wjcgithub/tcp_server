@@ -56,6 +56,7 @@ int main(){
 
 	//accept
 	remote_len = sizeof(struct sockaddr);
+	// printf("%s\n", server_ip.sin_addr.s_addr);
 	ad = accept(sd, (struct sockaddr *)(&remote_ip), &remote_len);
 	if (ad == -1)
 	{
