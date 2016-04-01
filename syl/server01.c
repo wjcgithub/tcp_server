@@ -8,6 +8,17 @@
 //定义监听端口
 #define PORT 8080
 
+/**
+ * 处理浏览器请求
+ * 参数 *sock 客户端套接字地址
+*/
+void requestHandling(void *sock);
+//发送数据
+void sendData(void *sock, char *filename);
+//显示html
+void catHTML(void *sock, char *filename);
+//显示图片
+void catJPEG(void *sock, char *filename);
 //定义错误处理句柄
 void errorHandling(char *message);
 
@@ -83,4 +94,47 @@ void errorHandling(char *message){
   fputs(message, stderr);
   fputc('\n', stderr);
   exit(1);
+}
+
+/**
+ * 处理浏览器请求
+ * 参数 *sock 客户端套接字地址
+*/
+void requestHandling(void *sock){
+  int clnt_sock = *((int *) sock);
+  printf("client socket is: %d\n", clnt_sock);
+
+  //缓存区
+  char buf[1024];
+  //请求方法
+  char method[10];
+  //请求的文件名
+  char filename[20];
+
+  //读取浏览器请求内容
+  read(clnt_sock, buf, sizeof(buf)-1);
+
+  //检查请求协议是否正确
+  if (NULL == strstr(buf, "HTTP/")) {
+    sendError(sock);
+    close(clnt_sock);
+    return ;
+  }
+
+  //保存请求方法到method数组
+  strcpy(method, strtok(buf, " /"));
+
+  //保存文件名到filename数组
+  strcpy(filename, strtok(NULL, " /"));
+  printf("请求的文件名是: %s\n", filename);
+
+  //判断请求方法是不是GET请求, 不是GET则进行请求错误处理
+  if (0 != strcmp(method, "GET")) {
+    sendError(sock);
+    close(clnt_sock);
+    return ;
+  }
+
+  //访问请求文件
+  sendData(sock, filename);
 }
